@@ -25,22 +25,6 @@ O trabalho exige três recursos do PostgreSQL, implementados e demonstrados:
 - **[draw.io](https://www.drawio.com)**, para o diagrama do modelo de dados (`docs/modelo_chamados.drawio`);
 - **Git / GitHub**, para versionamento e entrega.
 
-## Estrutura do repositório
-
-```
-chamados-db/
-├── README.md
-├── docs/
-│   ├── modelo_chamados.drawio    # diagrama editável (draw.io)
-│   └── modelo_chamados.png       # diagrama exportado
-└── sql/
-    ├── 01_schema.sql             # tabelas, tipos, restrições
-    ├── 02_funcoes.sql            # funções e triggers
-    ├── 03_views.sql              # views
-    ├── 04_dados.sql              # dados de exemplo
-    └── 05_demonstracao.sql       # demonstração de views, funções e transações
-```
-
 ## Como executar
 
 1. Suba o PostgreSQL e o pgAdmin e crie o banco `chamados_db`.
