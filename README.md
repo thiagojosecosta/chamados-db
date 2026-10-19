@@ -20,15 +20,32 @@ O trabalho exige três recursos do PostgreSQL, implementados e demonstrados:
 
 ## Ferramentas utilizadas
 
-- **PostgreSQL 18**, executando em um contêiner **Docker** (`docker_Db`), a partir da imagem oficial: [Docker Hub](https://hub.docker.com/_/postgres) · [repositório](https://github.com/docker-library/postgres);
-- **pgAdmin 4**, a interface web do PostgreSQL, também em contêiner Docker, usada para criar o banco, executar os scripts e interagir com os dados: [Docker Hub](https://hub.docker.com/r/dpage/pgadmin4) · [documentação do contêiner](https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html) · [repositório](https://github.com/pgadmin-org/pgadmin4);
-- **Mermaid**, para o diagrama deste README: [documentação](https://mermaid.js.org) · [repositório](https://github.com/mermaid-js/mermaid);
-- **draw.io (diagrams.net)**, para o diagrama do modelo de dados, em `modelo_chamados.drawio`: [site](https://www.drawio.com) · [repositório](https://github.com/jgraph/drawio);
+- **[PostgreSQL 18](https://hub.docker.com/_/postgres)**, em contêiner Docker (`docker_Db`);
+- **[pgAdmin 4](https://hub.docker.com/r/dpage/pgadmin4)**, também em contêiner, para criar o banco e executar os scripts;
+- **[draw.io](https://www.drawio.com)**, para o diagrama do modelo de dados (`docs/modelo_chamados.drawio`);
 - **Git / GitHub**, para versionamento e entrega.
 
-## Como o projeto está organizado
+## Estrutura do repositório
 
-Os scripts são executados na ordem abaixo, no banco `chamados_db`. O `05` roda por blocos, pois mostra transações e erros propositais.
+```
+chamados-db/
+├── README.md
+├── docs/
+│   ├── modelo_chamados.drawio    # diagrama editável (draw.io)
+│   └── modelo_chamados.png       # diagrama exportado
+└── sql/
+    ├── 01_schema.sql             # tabelas, tipos, restrições
+    ├── 02_funcoes.sql            # funções e triggers
+    ├── 03_views.sql              # views
+    ├── 04_dados.sql              # dados de exemplo
+    └── 05_demonstracao.sql       # demonstração de views, funções e transações
+```
+
+## Como executar
+
+1. Suba o PostgreSQL e o pgAdmin e crie o banco `chamados_db`.
+2. Abra o **Query Tool** do pgAdmin no banco `chamados_db` e execute os scripts de `sql/`, **na ordem numérica** (`01` a `04`). O `01` recria o schema `chamados` do zero, então pode ser reexecutado quando quiser.
+3. Execute o `05_demonstracao.sql` **por blocos** (selecione o trecho e rode com F5), pois ele mostra transações e erros propositais.
 
 | Ordem | Arquivo | Conteúdo |
 |---|---|---|
@@ -36,58 +53,18 @@ Os scripts são executados na ordem abaixo, no banco `chamados_db`. O `05` roda 
 | 2 | `sql/02_funcoes.sql` | Funções e triggers |
 | 3 | `sql/03_views.sql` | Views |
 | 4 | `sql/04_dados.sql` | Dados de exemplo |
-| 5 | `sql/05_demonstracao.sql` | Demonstração de views, funções e transações |
+| 5 | `sql/05_demonstracao.sql` | Demonstração de views, funções, triggers e transações |
 
 ## Modelo de dados
 
-```mermaid
-erDiagram
-    DEPARTAMENTO ||--o{ USUARIO : "possui"
-    USUARIO ||--o{ CHAMADO : "solicita"
-    USUARIO |o--o{ CHAMADO : "atende (técnico)"
-    CATEGORIA ||--o{ CHAMADO : "classifica"
-    SLA ||--o{ CHAMADO : "define prazo por prioridade"
-    CHAMADO ||--o{ COMENTARIO : "recebe"
-    USUARIO ||--o{ COMENTARIO : "escreve"
-    CHAMADO ||--o{ HISTORICO_STATUS : "registra"
+![Modelo de dados do sistema de chamados](docs/modelo_chamados.png)
 
-    DEPARTAMENTO { int id_departamento PK
-        varchar nome UK }
-    USUARIO { int id_usuario PK
-        varchar nome
-        varchar email UK
-        perfil_usuario perfil
-        int id_departamento FK
-        boolean ativo }
-    CATEGORIA { int id_categoria PK
-        varchar nome UK
-        text descricao }
-    SLA { prioridade_chamado prioridade PK
-        int horas_resolucao }
-    CHAMADO { int id_chamado PK
-        varchar titulo
-        text descricao
-        status_chamado status
-        prioridade_chamado prioridade
-        int id_categoria FK
-        int id_solicitante FK
-        int id_tecnico FK
-        timestamp aberto_em
-        timestamp prazo_sla
-        timestamp resolvido_em }
-    COMENTARIO { int id_comentario PK
-        int id_chamado FK
-        int id_usuario FK
-        text texto
-        timestamp criado_em }
-    HISTORICO_STATUS { int id_historico PK
-        int id_chamado FK
-        status_chamado status_anterior
-        status_chamado status_novo
-        timestamp alterado_em }
-```
+*PK = chave primária · FK = chave estrangeira · UK = valor único. O arquivo editável está em [`docs/modelo_chamados.drawio`](docs/modelo_chamados.drawio).*
 
-Cada chamado tem categoria (Hardware, Software, Rede, Acesso), prioridade (`BAIXA` a `CRITICA`) e status (`ABERTO`, `EM_ATENDIMENTO`, `AGUARDANDO_CLIENTE`, `RESOLVIDO`, `FECHADO`, `CANCELADO`). Usuários têm perfil `CLIENTE`, `TECNICO` ou `ADMIN`.
+- Cada chamado tem categoria (Hardware, Software, Rede, Acesso), prioridade (`BAIXA`, `MEDIA`, `ALTA`, `CRITICA`) e status (`ABERTO`, `EM_ATENDIMENTO`, `AGUARDANDO_CLIENTE`, `RESOLVIDO`, `FECHADO`, `CANCELADO`).
+- Usuários têm perfil `CLIENTE`, `TECNICO` ou `ADMIN`.
+- `CHAMADO` se liga duas vezes a `USUARIO`: o **solicitante** (quem abriu) e o **técnico** (quem atende, opcional até ser atribuído).
+- A tabela `SLA` define o prazo de resolução, em horas, de cada prioridade.
 
 ## Funcionalidades
 
@@ -107,7 +84,7 @@ Cada chamado tem categoria (Hardware, Software, Rede, Acesso), prioridade (`BAIX
 | `fn_calcula_prazo_sla` | Calcula o prazo de resolução pela prioridade (ex.: crítico = 4 h, baixo = 72 h) |
 | `fn_carga_tecnico` | Quantos chamados o técnico tem em andamento, útil para distribuir o trabalho |
 | `fn_horas_resolucao` | Tempo gasto para resolver um chamado |
-| Triggers | Definem o prazo ao abrir o chamado, gravam o histórico de cada mudança de status e impedem reabrir um chamado já fechado |
+| Triggers | Definem o prazo ao abrir o chamado, gravam o histórico de cada mudança de status e impedem alterar o status de um chamado já fechado ou cancelado |
 
 ### Transações — nada fica pela metade
 | Caso | Exemplo prático |
