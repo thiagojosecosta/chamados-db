@@ -1,5 +1,12 @@
 # Sistema de Gerenciamento de Chamados — Banco de Dados PostgreSQL
 
+<p align="center">
+  <img src="https://img.shields.io/badge/PostgreSQL-18-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL 18">
+  <img src="https://img.shields.io/badge/pgAdmin-4-336791?logo=postgresql&logoColor=white" alt="pgAdmin 4">
+  <img src="https://img.shields.io/badge/Docker-cont%C3%AAiner-2496ED?logo=docker&logoColor=white" alt="Docker">
+  <img src="https://img.shields.io/badge/draw.io-diagrama-F08705?logo=diagramsdotnet&logoColor=white" alt="draw.io">
+</p>
+
 **Instituto Federal do Paraná (IFPR) — Campus Palmas/PR**
 Disciplina: **Banco de Dados 2** · Professora: **Bruna Francieli Kwiatkovski**
 Aluno: **Thiago J. Costa**
